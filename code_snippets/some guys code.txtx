@@ -1,0 +1,5 @@
+some guys code
+https://github.com/dmsehuang/CarND-Advanced-Lane-Lines/blob/project/Image_threshold.ipynb
+
+ src = np.float32([(200, 720), (580, 480), (720, 480), (1050, 700)])
+    dst = np.float32([(280, 720), (400, 190), (920, 190), (960, 720)]) (edited)
