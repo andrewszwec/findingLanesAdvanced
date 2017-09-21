@@ -31,6 +31,8 @@
 # plt.imshow(sxbinary, cmap='gray')
 # Define a function that takes an image, gradient orientation,
 # and threshold min / max values.
+
+
 def abs_sobel_thresh(img, orient='x', thresh_min=0, thresh_max=255):
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -55,7 +57,7 @@ def abs_sobel_thresh(img, orient='x', thresh_min=0, thresh_max=255):
 ##################################################
 # Magnititude Thresholding - USEFUL CODE
 ##################################################
-def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
+def mag_thresh(img, sobel_kernel=5, mag_thresh=(100, 255)):
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # Take both Sobel x and y gradients
@@ -91,6 +93,63 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
 
     # Return the binary image
     return binary_output
+
+##################################################
+# Sobel Threshold
+##################################################
+def pipeline(img, s_thresh=(100, 255), sx_thresh=(20, 255)):
+    img = np.copy(img)
+    # Convert to HSV color space and separate the V channel
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
+    l_channel = hsv[:,:,1]
+    s_channel = hsv[:,:,2]
+    
+    # Sobel x
+    sobelx = cv2.Sobel(l_channel, cv2.CV_64F, 1, 0) # Take the derivative in x
+    abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
+    scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+
+    # Threshold x gradient
+    sxbinary = np.zeros_like(scaled_sobel)
+    sxbinary[(scaled_sobel >= sx_thresh[0]) & (scaled_sobel <= sx_thresh[1])] = 1
+    
+    # Threshold color channel
+    s_binary = np.zeros_like(s_channel)
+    s_binary[(s_channel >= s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
+    # Stack each channel
+    color_binary = np.dstack(( np.zeros_like(sxbinary), sxbinary, s_binary))
+    
+    combined = np.zeros_like(s_channel)
+    combined[(s_binary == 1) | (sxbinary == 1)] = 1
+    
+    return color_binary, combined
+
+
+
+
+##################################################
+# Colour Spaces
+##################################################
+# Define a function that thresholds the S-channel of HLS
+# Use exclusive lower bound (>) and inclusive upper (<=)
+def hls_select(img, thresh=(0, 255)):
+    # 1) Convert to HLS color space
+    # 2) Apply a threshold to the S channel
+    # 3) Return a binary image of threshold result
+    
+    # Convert to HLS colour space
+    hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+    H = hls[:,:,0]
+    L = hls[:,:,1]
+    S = hls[:,:,2]
+    # Apply a threshold to the S channel
+    binary = np.zeros_like(S)
+    binary[(S > thresh[0]) & (S <= thresh[1])] = 1
+
+    binary_output = binary
+    return binary_output
+    
+hls_binary = hls_select(image, thresh=(90, 255))
 
 
 
