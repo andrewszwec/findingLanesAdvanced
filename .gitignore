@@ -1,4 +1,6 @@
 *.zip
-*.jpg
-*.bmp
-*.mp4
+challenge_video.mp4
+project_video.mp4
+/examples
+/out
+/test_images
